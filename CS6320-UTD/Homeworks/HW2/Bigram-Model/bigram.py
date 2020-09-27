@@ -6,92 +6,95 @@ Created on Sun Sep 27 20:06:13 2020
 @author: pratt
 """
 #import pandas as pd
-def readAndFormatFile():
-    f = open('./POS-Tagged-Corpus.txt', 'r')
-    Lines = f.readlines() 
-      
-    count = 0
+class Bigram:
     
-    content = []
-    for line in Lines: 
-        count +=1
-        content.append(line)
+    def readAndFormatFile(self):
+        f = open('./POS-Tagged-Corpus.txt', 'r')
+        Lines = f.readlines() 
+          
+        count = 0
         
-    refined_content = []
-    for line in content:
-        X = []
-        X = line.split()
-        refined_content.append(X)
+        content = []
+        for line in Lines: 
+            count +=1
+            content.append(line)
+            
+        refined_content = []
+        for line in content:
+            X = []
+            X = line.split()
+            refined_content.append(X)
+        
+        split_content = []
+        for x in refined_content:
+            z = []
+            z.append("<s>")
+            for word in x:
+                word = word.split('_')[0]
+                word = word.lower()
+                z.append(word)
+            z.append("</s>")
+            split_content.append(z)
+        return split_content
     
-    split_content = []
-    for x in refined_content:
-        z = []
-        z.append("<s>")
-        for word in x:
-            word = word.split('_')[0]
-            word = word.lower()
-            z.append(word)
-        z.append("</s>")
-        split_content.append(z)
-    return split_content
-
-def unigramCounts(split_content):
-    count_dictionary = {}
+    def unigramCounts(self,split_content):
+        count_dictionary = {}
+        
+        for line in split_content:
+            for word in line:
+                if word in count_dictionary.keys():
+                    count_dictionary[word] += 1 
+                else:
+                    count_dictionary[word] = 1
+        return count_dictionary
     
-    for line in split_content:
-        for word in line:
-            if word in count_dictionary.keys():
-                count_dictionary[word] += 1 
-            else:
-                count_dictionary[word] = 1
-    return count_dictionary
-
-#print(count_dictionary)
-def bigramCounts(split_content):    
-    bigrams = {}
-    for i in range(len(split_content)):
-        for x in range(len(split_content[i])-1):
-            temp = (split_content[i][x], split_content[i][x+1]) 
-            if not temp in bigrams:
-                bigrams[temp] = 1
-            else:
-                bigrams[temp] += 1
-    return bigrams
-
-#print(bigrams)
- 
-def getTotalWords(count_dictionary):           
-    total_words = 0
-    for key in count_dictionary.keys():
-        total_words += count_dictionary[key]
     
-#print(total_words)
+    def bigramCounts(self,split_content):    
+        bigrams = {}
+        for i in range(len(split_content)):
+            for x in range(len(split_content[i])-1):
+                temp = (split_content[i][x], split_content[i][x+1]) 
+                if not temp in bigrams:
+                    bigrams[temp] = 1
+                else:
+                    bigrams[temp] += 1
+        return bigrams
     
-def calculateBigram(bigrams,count_dictionary):
-    with open("bigrams.txt", 'w') as out:
-        out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
-        out.write('\n')
-        out.close()
-    
-    for bigram,bigram_count in bigrams.items():
-        first_word = bigram[0]
-        first_word_count = count_dictionary[first_word] 
-        bigram_probability = bigrams[bigram]/first_word_count
-        add_one_probability = (bigram_count + 1)/(first_word_count + len(count_dictionary))
-        cStar_addOne = ((bigram_count + 1) * first_word_count) / (first_word_count + len(count_dictionary))
-        with open("bigrams.txt", 'a') as out:
-            out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
+    #print(bigrams)
+     
+    def getTotalWords(self,count_dictionary):           
+        total_words = 0
+        for key in count_dictionary.keys():
+            total_words += count_dictionary[key]
+        
+    #print(total_words)
+        
+    def calculateBigram(self,bigrams,count_dictionary):
+        with open("bigrams.txt", 'w') as out:
+            out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
             out.write('\n')
             out.close()
+        
+        for bigram,bigram_count in bigrams.items():
+            first_word = bigram[0]
+            first_word_count = count_dictionary[first_word] 
+            bigram_probability = bigrams[bigram]/first_word_count
+            add_one_probability = (bigram_count + 1)/(first_word_count + len(count_dictionary))
+            cStar_addOne = ((bigram_count + 1) * first_word_count) / (first_word_count + len(count_dictionary))
+            with open("bigrams.txt", 'a') as out:
+                out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
+                out.write('\n')
+                out.close()
+    
+    def train(self):
+        split_content = self.readAndFormatFile()
+        unigramC = self.unigramCounts(split_content)
+        bigramC = self.bigramCounts(split_content)
+        self.calculateBigram(bigramC,unigramC)
 
 
-split_content = readAndFormatFile()
-unigramC = unigramCounts(split_content)
-bigramC = bigramCounts(split_content)
-calculateBigram(bigramC,unigramC)
-
-
-
+bg = Bigram()
+bg.train()
 
 
 # def goodTuringDiscounting(listOfBigrams, bigramCounts, totalNumberOfBigrams):
