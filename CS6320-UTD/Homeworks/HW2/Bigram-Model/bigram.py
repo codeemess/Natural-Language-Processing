@@ -95,14 +95,26 @@ class Bigram:
         return prob, cStar
     
     def __goodTuringSmoothing(self,bigrams,count_dictionary):
-        
+        freqOfFreq = {}
+        for bigram, count in bigrams.items():
+            if count in freqOfFreq.keys():
+                freqOfFreq[count]["value"] +=1
+            else:
+                freqOfFreq[count] = {}
+                freqOfFreq[count]["value"] = 1
+                freqOfFreq[count]["prob"] = None
+        #print(freqOfFreq)
+        freqOfFreqSorted = sorted(freqOfFreq.items() , key=lambda t : t[0])
+        print(freqOfFreqSorted)
         return
     
     def train(self):
         split_content = self.__readAndFormatFile()
         unigramC = self.__unigramCounts(split_content)
         bigramC = self.__bigramCounts(split_content)
-        self.__computeBigrams(bigramC,unigramC)
+        self.__goodTuringSmoothing(bigramC,unigramC)
+        # self.__computeBigrams(bigramC,unigramC)
+        
 
 bg = Bigram()
 bg.train()
