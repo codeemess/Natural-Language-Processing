@@ -8,6 +8,7 @@ Created on Sun Sep 27 20:06:13 2020
 
 class Bigram:
     __zeroOccurenceProbGoodTuring = 0
+    __model = {}
     
     def __readAndFormatFile(self):
         f = open('./POS-Tagged-Corpus.txt', 'r')
@@ -75,12 +76,24 @@ class Bigram:
             out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
             out.write('\n')
             out.close()
+            
+        goodTuring = self.__goodTuringSmoothing(bigrams,count_dictionary)
         
         for bigram,bigram_count in bigrams.items():
+            
             first_word = bigram[0]
             first_word_count = count_dictionary[first_word] 
             bigram_probability = self.__unsmoothedBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
             add_one_probability, cStar_addOne = self.__laplaceBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
+            self.__model[bigram]={}
+            self.__model[bigram]["count"] = bigram_count
+            self.__model[bigram]["prob"] = bigram_probability
+            self.__model[bigram]["cstar-addOne"] = cStar_addOne
+            self.__model[bigram]["prob-addOne"] = add_one_probability
+            for x in goodTuring:
+                if bigram_count == x[0]:
+                    self.__model[bigram]['cStar-gt'] = x[1]['cStar']
+                    self.__model[bigram]['prob-gt'] = x[1]['prob']
             with open("bigrams.txt", 'a') as out:
                 out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
                 out.write('\n')
@@ -103,75 +116,29 @@ class Bigram:
                 freqOfFreq[count] = {}
                 freqOfFreq[count]["value"] = 1
                 freqOfFreq[count]["prob"] = None
-        #print(freqOfFreq)
         freqOfFreqSorted = sorted(freqOfFreq.items() , key=lambda t : t[0])
-        #print(freqOfFreqSorted)
-        last_element = freqOfFreqSorted[-1][0]
-        #print(last_element)
  
         for x in range(len(freqOfFreqSorted)-1):
-            #print(freqOfFreqSorted[x+1][0] - freqOfFreqSorted[x][0] == 1)
+           
             if ((freqOfFreqSorted[x+1][0] - freqOfFreqSorted[x][0]) == 1):
                 freqOfFreqSorted[x][1]["cStar"] = (x+1)*(freqOfFreqSorted[x+1][1]['value'])/freqOfFreqSorted[x][1]['value']
                 freqOfFreqSorted[x][1]["prob"] = freqOfFreqSorted[x][1]["cStar"]/len(bigrams)
             else:
                 freqOfFreqSorted[x][1]["cStar"] = 0
                 freqOfFreqSorted[x][1]["prob"] = 0
-        
+        #last bucket will never have a bucket ahead
         freqOfFreqSorted[-1][1]['cStar'] = 0
         freqOfFreqSorted[-1][1]['prob'] = 0
+        #for Nc=0
         freqOfFreqSorted.append((0, {'prob':freqOfFreqSorted[0][1]['value'] / len(bigrams)}))
-        print(freqOfFreqSorted)
+        return freqOfFreqSorted
                 
     def train(self):
         split_content = self.__readAndFormatFile()
         unigramC = self.__unigramCounts(split_content)
-        bigramC = self.__bigramCounts(split_content)
-        self.__goodTuringSmoothing(bigramC,unigramC)
-        # self.__computeBigrams(bigramC,unigramC)
-        
+        bigramC = self.__bigramCounts(split_content)    
+        self.__computeBigrams(bigramC,unigramC)
+        print(self.__model[('the','soaring')])
 
 bg = Bigram()
 bg.train()
-
- # 	lenBucketList = len(bucketList)
-
-# 	for k, v in bucketList:
-
-# 		if i < lenBucketList-1:
-# 			if v == 0:
-# 				cStar[k] = 0
-# 				pStar[k] = 0
-
-# 			else:
-# 				cStar[k] = (i+1) * bucketList[i][1] / v
-# 				pStar[k] = cStar[k] / totalNumberOfBigrams
-
-# 		else:
-# 			cStar[k] = 0
-# 			pStar[k] = 0
-
-# 		i += 1
-
-
-# 	for bigram in listOfBigrams:
-# 		listOfProb[bigram] = pStar.get(bigramCounts[bigram])
-# 		listOfCounts[bigram] = cStar.get(bigramCounts[bigram])
-
-
-
-# 	file = open('goodTuringDiscounting.txt', 'w')
-# 	file.write('Bigram' + '\t\t\t' + 'Count' + '\t' + 'Probability' + '\n')
-
-# 	for bigrams in listOfBigrams:
-# 		file.write(str(bigrams) + ' : ' + str(bigramCounts[bigrams])
-# 				   + ' : ' + str(listOfProb[bigrams]) + '\n')
-
-# 	file.close()
-
-# 	return listOfProb, zeroOccurenceProb, listOfCounts
-
-
-
-
-
