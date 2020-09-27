@@ -66,7 +66,7 @@ for key in count_dictionary.keys():
 #print(total_words)
 
 with open("bigrams.txt", 'a') as out:
-    out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob')
+    out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
     out.write('\n')
     out.close()
 
@@ -74,36 +74,14 @@ for bigram,bigram_count in bigrams.items():
     first_word = bigram[0]
     first_word_count = count_dictionary[first_word] 
     bigram_probability = bigrams[bigram]/first_word_count
+    add_one_probability = (bigram_count + 1)/(first_word_count + len(count_dictionary))
+    cStar_addOne = ((bigram_count + 1) * first_word_count) / (first_word_count + len(count_dictionary))
     with open("bigrams.txt", 'a') as out:
-        out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability)) # Delete whatever you don't want to print into a file
+        out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
         out.write('\n')
         out.close()
 
 
-#     # Now Hidden Markov Model
-#     # bigramProb = (Count(bigram) / Count(first_word)) + (Count(first_word)/ total_words_in_corpus)
-#     # A few things we need to keep in mind
-#     total_corpus = sum(unigrams.values())
-#     # You can add smoothed estimation if you want
-
-
-#     print 'Calculating bigram probabilities and saving to file...'
-
-#     # Comment the following 4 lines if you do not want the header in the file. 
 
 
 
-#     for k,v in bigrams.iteritems():
-#         # first_word = helle in ('hello', 'world')
-#         first_word = k[0]
-#         first_word_count = unigrams[first_word]
-#         bi_prob = bigrams[k] / unigrams[first_word]
-#         uni_prob = unigrams[first_word] / total_corpus
-
-#         final_prob = bi_prob + uni_prob
-
-
-
-
-# # Callings
-#bigramEstimation('hello.txt')
