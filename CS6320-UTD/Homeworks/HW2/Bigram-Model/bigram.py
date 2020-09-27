@@ -7,7 +7,7 @@ Created on Sun Sep 27 20:06:13 2020
 """
 
 class Bigram:
-    
+    __zeroOccurenceProbGoodTuring = 0
     
     def __readAndFormatFile(self):
         f = open('./POS-Tagged-Corpus.txt', 'r')
@@ -87,7 +87,7 @@ class Bigram:
                 out.close()
     
     def __unsmoothedBigram(self,bigram,bigram_count,first_word_count,vocab_count):
-        return bigram_count/first_word_count
+        return (bigram_count/first_word_count)
     
     def __laplaceBigram(self,bigram,bigram_count,first_word_count,vocab_count):
         prob = (bigram_count + 1)/(first_word_count + vocab_count)
@@ -105,9 +105,24 @@ class Bigram:
                 freqOfFreq[count]["prob"] = None
         #print(freqOfFreq)
         freqOfFreqSorted = sorted(freqOfFreq.items() , key=lambda t : t[0])
+        #print(freqOfFreqSorted)
+        last_element = freqOfFreqSorted[-1][0]
+        #print(last_element)
+ 
+        for x in range(len(freqOfFreqSorted)-1):
+            #print(freqOfFreqSorted[x+1][0] - freqOfFreqSorted[x][0] == 1)
+            if ((freqOfFreqSorted[x+1][0] - freqOfFreqSorted[x][0]) == 1):
+                freqOfFreqSorted[x][1]["cStar"] = (x+1)*(freqOfFreqSorted[x+1][1]['value'])/freqOfFreqSorted[x][1]['value']
+                freqOfFreqSorted[x][1]["prob"] = freqOfFreqSorted[x][1]["cStar"]/len(bigrams)
+            else:
+                freqOfFreqSorted[x][1]["cStar"] = 0
+                freqOfFreqSorted[x][1]["prob"] = 0
+        
+        freqOfFreqSorted[-1][1]['cStar'] = 0
+        freqOfFreqSorted[-1][1]['prob'] = 0
+        freqOfFreqSorted.append((0, {'prob':freqOfFreqSorted[0][1]['value'] / len(bigrams)}))
         print(freqOfFreqSorted)
-        return
-    
+                
     def train(self):
         split_content = self.__readAndFormatFile()
         unigramC = self.__unigramCounts(split_content)
@@ -119,36 +134,7 @@ class Bigram:
 bg = Bigram()
 bg.train()
 
-
-# def goodTuringDiscounting(listOfBigrams, bigramCounts, totalNumberOfBigrams):
-# 	listOfProb = {}
-# 	bucket = {}
-# 	bucketList = []
-# 	cStar = {}
-# 	pStar = {}
-# 	listOfCounts = {}
-# 	i = 1
-
-# 	for bigram in bigramCounts.items():
-# 		key = bigram[0]
-# 		value = bigram[1]
-# 		
-# 		if not value in bucket:
-# 			bucket[value] = 1
-# 		else:
-# 			bucket[value] += 1	
-
-# 	# Sorted Bucket
-# 	bucketList = sorted(bucket.items() , key=lambda t : t[0])
-# 	zeroOccurenceProb = bucketList[0][1] / totalNumberOfBigrams
-# 	lastItem = bucketList[len(bucketList)-1][0]
-
-# 	for x in range(1, lastItem):
-# 		if x not in bucket:
-# 			bucket[x] = 0
-
-# 	bucketList = sorted(bucket.items() , key=lambda t : t[0])
-# 	lenBucketList = len(bucketList)
+ # 	lenBucketList = len(bucketList)
 
 # 	for k, v in bucketList:
 
