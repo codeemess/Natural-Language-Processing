@@ -5,10 +5,13 @@ Created on Sun Sep 27 20:06:13 2020
 
 @author: pratt
 """
+import _pickle as pickle
 
 class Bigram:
-    __zeroOccurenceProbGoodTuring = 0
     __model = {}
+    __model["zeroProbAddOne"] = {}
+    __model["zeroProbGT"] = 0
+    __model["unigrams"] = {}
     
     def __readAndFormatFile(self):
         f = open('./POS-Tagged-Corpus.txt', 'r')
@@ -68,36 +71,45 @@ class Bigram:
         total_words = 0
         for key in count_dictionary.keys():
             total_words += count_dictionary[key]
+        return total_words
         
     #print(total_words)
         
     def __computeBigrams(self,bigrams,count_dictionary):
-        with open("bigrams.txt", 'w') as out:
-            out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
-            out.write('\n')
-            out.close()
+            
+        total_words = self.__getTotalWords(count_dictionary)
             
         goodTuring = self.__goodTuringSmoothing(bigrams,count_dictionary)
         
         for bigram,bigram_count in bigrams.items():
-            
             first_word = bigram[0]
             first_word_count = count_dictionary[first_word] 
             bigram_probability = self.__unsmoothedBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
             add_one_probability, cStar_addOne = self.__laplaceBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
+           
             self.__model[bigram]={}
             self.__model[bigram]["count"] = bigram_count
             self.__model[bigram]["prob"] = bigram_probability
             self.__model[bigram]["cstar-addOne"] = cStar_addOne
             self.__model[bigram]["prob-addOne"] = add_one_probability
+           
+            if first_word in self.__model['zeroProbAddOne'].keys():
+                continue
+            else:
+                self.__model['zeroProbAddOne'][first_word] = first_word_count/(first_word_count+len(count_dictionary))
+                
+            
+            if first_word in self.__model['unigrams'].keys():
+                continue
+            else:
+                self.__model['unigrams'][first_word] = {"count":first_word_count,"prob": first_word_count/total_words}
+            
+            
             for x in goodTuring:
                 if bigram_count == x[0]:
                     self.__model[bigram]['cStar-gt'] = x[1]['cStar']
                     self.__model[bigram]['prob-gt'] = x[1]['prob']
-            with open("bigrams.txt", 'a') as out:
-                out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
-                out.write('\n')
-                out.close()
+
     
     def __unsmoothedBigram(self,bigram,bigram_count,first_word_count,vocab_count):
         return (bigram_count/first_word_count)
@@ -131,14 +143,78 @@ class Bigram:
         freqOfFreqSorted[-1][1]['prob'] = 0
         #for Nc=0
         freqOfFreqSorted.append((0, {'prob':freqOfFreqSorted[0][1]['value'] / len(bigrams)}))
+        self.__model['zeroProbGT'] = freqOfFreqSorted[0][1]['value'] / len(bigrams)
         return freqOfFreqSorted
-                
+    
+    def writeModelToFile(self):
+        with open('bigrams.txt', 'wb') as file:
+            file.write(pickle.dumps(str(self.__model))) # use `pickle.loads` to do the reverse
+    
     def train(self):
         split_content = self.__readAndFormatFile()
         unigramC = self.__unigramCounts(split_content)
         bigramC = self.__bigramCounts(split_content)    
         self.__computeBigrams(bigramC,unigramC)
-        print(self.__model[('the','soaring')])
+        self.writeModelToFile()
+        
+    def test(self,sentence):
+        testSen = sentence.split()
+        z = []
+        z.append("<s>")
+        for word in testSen:
+            word = word.split('_')[0]
+            word = word.lower()
+            z.append(word)
+        z.append("</s>")
+        print(z)
+        print('{:.20f}'.format(self.testBigram(z)))
+        print(self.testLaplaceSmoothBigram(z))
+        
+    def testBigram(self,sentence_arr):
+        prob = None
+        for i in range(0,len(sentence_arr)-1):
+            if i == 0:
+                prob = self.__model['unigrams'][sentence_arr[i]]['prob']
+            else:
+                bigramProb = 0
+                if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']
+                    prob *= bigramProb
+        return prob
+    
+    
+    def testLaplaceSmoothBigram(self,sentence_arr):
+        prob = None
+        for i in range(0,len(sentence_arr)-1):
+            if i == 0:
+                prob = self.__model['unigrams'][sentence_arr[i]]['prob']
+            else:
+                bigramProb = 0
+                if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob-addOne']
+                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    laplaceProb = bigramProb/unigramProb
+                    prob *= laplaceProb
+                else:
+                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    prob *= unigramProb
+                    
+        return prob
+        
+    def testGTBigram(self,sentence_arr):
+        prob = None
+        for i in range(0,len(sentence_arr)-1):
+            if i == 0:
+                prob = self.__model['unigrams'][sentence_arr[i]]['prob']
+            else:
+                bigramProb = 0
+                if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']
+                    prob *= bigramProb
+        return prob
+        
+        
 
 bg = Bigram()
 bg.train()
+bg.test("Brainpower_NNP ,_, not_RB physical_JJ plant_NN ,_, is_VBZ now_RB a_DT firm_NN 's_POS chief_JJ asset_NN ._. ")
