@@ -65,7 +65,7 @@ for key in count_dictionary.keys():
     
 #print(total_words)
 
-with open("bigrams.txt", 'a') as out:
+with open("bigrams.txt", 'w') as out:
     out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
     out.write('\n')
     out.close()
