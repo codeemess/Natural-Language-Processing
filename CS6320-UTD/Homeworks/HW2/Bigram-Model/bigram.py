@@ -5,10 +5,11 @@ Created on Sun Sep 27 20:06:13 2020
 
 @author: pratt
 """
-#import pandas as pd
+
 class Bigram:
     
-    def readAndFormatFile(self):
+    
+    def __readAndFormatFile(self):
         f = open('./POS-Tagged-Corpus.txt', 'r')
         Lines = f.readlines() 
           
@@ -37,7 +38,7 @@ class Bigram:
             split_content.append(z)
         return split_content
     
-    def unigramCounts(self,split_content):
+    def __unigramCounts(self,split_content):
         count_dictionary = {}
         
         for line in split_content:
@@ -49,7 +50,7 @@ class Bigram:
         return count_dictionary
     
     
-    def bigramCounts(self,split_content):    
+    def __bigramCounts(self,split_content):    
         bigrams = {}
         for i in range(len(split_content)):
             for x in range(len(split_content[i])-1):
@@ -62,14 +63,14 @@ class Bigram:
     
     #print(bigrams)
      
-    def getTotalWords(self,count_dictionary):           
+    def __getTotalWords(self,count_dictionary):           
         total_words = 0
         for key in count_dictionary.keys():
             total_words += count_dictionary[key]
         
     #print(total_words)
         
-    def calculateBigram(self,bigrams,count_dictionary):
+    def __computeBigrams(self,bigrams,count_dictionary):
         with open("bigrams.txt", 'w') as out:
             out.write('Bigram' + '\t' + 'Bigram Count' + '\t' + 'Uni Count' + '\t' + 'Bigram Prob' + '\t' + 'Add One Probability' + '\t' + 'Add One C-star')
             out.write('\n')
@@ -78,20 +79,30 @@ class Bigram:
         for bigram,bigram_count in bigrams.items():
             first_word = bigram[0]
             first_word_count = count_dictionary[first_word] 
-            bigram_probability = bigrams[bigram]/first_word_count
-            add_one_probability = (bigram_count + 1)/(first_word_count + len(count_dictionary))
-            cStar_addOne = ((bigram_count + 1) * first_word_count) / (first_word_count + len(count_dictionary))
+            bigram_probability = self.__unsmoothedBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
+            add_one_probability, cStar_addOne = self.__laplaceBigram(bigram, bigram_count, first_word_count,len(count_dictionary))
             with open("bigrams.txt", 'a') as out:
                 out.write(bigram[0] + ' ' + bigram[1] + '\t' + str(bigram_count) + '\t' + str(first_word_count) + '\t' + str(bigram_probability) + '\t' + str(add_one_probability) + '\t' + str(cStar_addOne)) 
                 out.write('\n')
                 out.close()
     
+    def __unsmoothedBigram(self,bigram,bigram_count,first_word_count,vocab_count):
+        return bigram_count/first_word_count
+    
+    def __laplaceBigram(self,bigram,bigram_count,first_word_count,vocab_count):
+        prob = (bigram_count + 1)/(first_word_count + vocab_count)
+        cStar = ((bigram_count + 1) * first_word_count) / (first_word_count + vocab_count)
+        return prob, cStar
+    
+    def __goodTuringSmoothing(self,bigrams,count_dictionary):
+        
+        return
+    
     def train(self):
-        split_content = self.readAndFormatFile()
-        unigramC = self.unigramCounts(split_content)
-        bigramC = self.bigramCounts(split_content)
-        self.calculateBigram(bigramC,unigramC)
-
+        split_content = self.__readAndFormatFile()
+        unigramC = self.__unigramCounts(split_content)
+        bigramC = self.__bigramCounts(split_content)
+        self.__computeBigrams(bigramC,unigramC)
 
 bg = Bigram()
 bg.train()
