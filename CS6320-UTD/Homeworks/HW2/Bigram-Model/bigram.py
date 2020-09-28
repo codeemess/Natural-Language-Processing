@@ -217,13 +217,9 @@ class Bigram:
                 bigramProb = 0
                 if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
                     bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob-addOne']
-                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]['prob']
-                    laplaceProb = bigramProb/unigramProb
+                    laplaceProb = bigramProb
                     prob *= laplaceProb
-                else:
-                   if (sentence_arr[i-1]) in self.__model['unigrams'].keys():
-                        unigramProb = self.__model['zeroProbAddOne'][sentence_arr[i-1]]
-                        prob *= unigramProb
+ 
                     
         return prob
         
