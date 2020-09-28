@@ -8,6 +8,8 @@ Created on Sun Sep 27 20:06:13 2020
 import pickle as pickle
 
 class Bigram:
+    ''' Class bigram contains implementation for the bigram mode'''
+    #the data below is populated by the methods
     __model = {}
     __model["zeroProbAddOne"] = {}
     __model["zeroProbGT"] = 0
@@ -15,6 +17,7 @@ class Bigram:
     __goodTuring = []
     
     def __readAndFormatFile(self):
+        ''' Loads the POS tagged corpus, appends the start and end line character, splits into lines'''
         f = open('./POS-Tagged-Corpus.txt', 'r')
         Lines = f.readlines() 
           
@@ -44,6 +47,7 @@ class Bigram:
         return split_content
     
     def __unigramCounts(self,split_content):
+        ''' Counts the occurence of each unigram and returns a dictionary of the same'''
         count_dictionary = {}
         
         for line in split_content:
@@ -55,7 +59,8 @@ class Bigram:
         return count_dictionary
     
     
-    def __bigramCounts(self,split_content):    
+    def __bigramCounts(self,split_content): 
+        ''' Counts the occurences of bigrams and returns the dictionary of the same'''
         bigrams = {}
         for i in range(len(split_content)):
             for x in range(len(split_content[i])-1):
@@ -68,7 +73,8 @@ class Bigram:
     
     #print(bigrams)
      
-    def __getTotalWords(self,count_dictionary):           
+    def __getTotalWords(self,count_dictionary):    
+        ''' counts the total number of tokens in the vocabulary and returns that'''
         total_words = 0
         for key in count_dictionary.keys():
             total_words += count_dictionary[key]
@@ -77,6 +83,7 @@ class Bigram:
     #print(total_words)
         
     def __computeBigrams(self,bigrams,count_dictionary):
+        ''' The function calls the other functions and populates the model dictionary with all the values of c and p for the three types'''
             
         total_words = self.__getTotalWords(count_dictionary)
         
@@ -116,14 +123,17 @@ class Bigram:
 
     
     def __unsmoothedBigram(self,bigram,bigram_count,first_word_count,vocab_count):
+        ''' probability for unsmooth bigram '''
         return (bigram_count/first_word_count)
     
     def __laplaceBigram(self,bigram,bigram_count,first_word_count,vocab_count):
+        ''' probability for add one smoothing bigram'''
         prob = (bigram_count + 1)/(first_word_count + vocab_count)
         cStar = ((bigram_count + 1) * first_word_count) / (first_word_count + vocab_count)
         return prob, cStar
     
     def __goodTuringSmoothing(self,bigrams,count_dictionary):
+        ''' Implements the good turing smoothing that sets c* = 0 if Nc+1 = 0'''
         freqOfFreq = {}
         for bigram, count in bigrams.items():
             if count in freqOfFreq.keys():
@@ -152,10 +162,12 @@ class Bigram:
         return freqOfFreqSorted
     
     def writeModelToFile(self):
+        ''' writes the trained model to a file'''
         with open('bigrams.txt', 'wb') as file:
             file.write(pickle.dumps(str(self.__model))) # use `pickle.loads` to do the reverse
     
     def train(self):
+        ''' trains the bigram model on the provided corpus'''
         split_content = self.__readAndFormatFile()
         unigramC = self.__unigramCounts(split_content)
         bigramC = self.__bigramCounts(split_content)    
@@ -163,6 +175,7 @@ class Bigram:
         self.writeModelToFile()
         
     def test(self,sentence):
+        ''' given a sentence it calculates the probability of the sentence'''
         testSen = sentence.split()
         z = []
         z.append("<s>")
@@ -180,6 +193,7 @@ class Bigram:
  
         
     def testBigram(self,sentence_arr):
+        ''' calculates un smoothed bigram probability on test sentence'''
         prob = None
         for i in range(0,len(sentence_arr)-1):
             if i == 0:
@@ -194,6 +208,7 @@ class Bigram:
     
     
     def testLaplaceSmoothBigram(self,sentence_arr):
+        ''' calculates laplace smoothed probability on test sentence'''
         prob = None
         for i in range(0,len(sentence_arr)-1):
             if i == 0:
@@ -213,6 +228,7 @@ class Bigram:
         return prob
         
     def testGTBigram(self,sentence_arr):
+        ''' calculates good turing discounting smoothing probability of the sentence ''' 
         prob = None
         for i in range(0,len(sentence_arr)-1):
             if i == 0:
