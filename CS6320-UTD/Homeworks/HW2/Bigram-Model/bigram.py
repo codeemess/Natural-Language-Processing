@@ -206,7 +206,7 @@ class Bigram:
                     laplaceProb = bigramProb/unigramProb
                     prob *= laplaceProb
                 else:
-                    if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                   if (sentence_arr[i-1]) in self.__model['unigrams'].keys():
                         unigramProb = self.__model['zeroProbAddOne'][sentence_arr[i-1]]
                         prob *= unigramProb
                     
@@ -232,7 +232,7 @@ class Bigram:
                     prob *= gt
                 else:
                     unseenProb = self.__model['zeroProbGT']
-                    if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                    if (sentence_arr[i-1]) in self.__model['unigrams'].keys():
                         unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
                         gt = unseenProb/unigramProb
                         prob *= gt
