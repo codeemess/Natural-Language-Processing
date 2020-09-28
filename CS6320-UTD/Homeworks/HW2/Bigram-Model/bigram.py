@@ -12,6 +12,7 @@ class Bigram:
     __model["zeroProbAddOne"] = {}
     __model["zeroProbGT"] = 0
     __model["unigrams"] = {}
+    __goodTuring = []
     
     def __readAndFormatFile(self):
         f = open('./POS-Tagged-Corpus.txt', 'r')
@@ -78,6 +79,8 @@ class Bigram:
     def __computeBigrams(self,bigrams,count_dictionary):
             
         total_words = self.__getTotalWords(count_dictionary)
+        
+        self.__goodTuring = self.__goodTuringSmoothing(bigrams,count_dictionary)
             
         goodTuring = self.__goodTuringSmoothing(bigrams,count_dictionary)
         
@@ -109,6 +112,7 @@ class Bigram:
                 if bigram_count == x[0]:
                     self.__model[bigram]['cStar-gt'] = x[1]['cStar']
                     self.__model[bigram]['prob-gt'] = x[1]['prob']
+                
 
     
     def __unsmoothedBigram(self,bigram,bigram_count,first_word_count,vocab_count):
@@ -144,6 +148,7 @@ class Bigram:
         #for Nc=0
         freqOfFreqSorted.append((0, {'prob':freqOfFreqSorted[0][1]['value'] / len(bigrams)}))
         self.__model['zeroProbGT'] = freqOfFreqSorted[0][1]['value'] / len(bigrams)
+        #print(freqOfFreqSorted)
         return freqOfFreqSorted
     
     def writeModelToFile(self):
@@ -166,9 +171,11 @@ class Bigram:
             word = word.lower()
             z.append(word)
         z.append("</s>")
-        print(z)
+        #print(z)
         print('{:.20f}'.format(self.testBigram(z)))
-        print(self.testLaplaceSmoothBigram(z))
+        print('{:.20f}'.format(self.testLaplaceSmoothBigram(z)))
+        print('{:.20f}'.format(self.testGTBigram(z)))
+ 
         
     def testBigram(self,sentence_arr):
         prob = None
@@ -196,7 +203,7 @@ class Bigram:
                     laplaceProb = bigramProb/unigramProb
                     prob *= laplaceProb
                 else:
-                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    unigramProb = self.__model['zeroProbAddOne'][sentence_arr[i-1]]["prob"]
                     prob *= unigramProb
                     
         return prob
@@ -209,10 +216,23 @@ class Bigram:
             else:
                 bigramProb = 0
                 if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
-                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']
-                    prob *= bigramProb
+                    #print(self.__model[(sentence_arr[i-1],sentence_arr[i])])
+                    #bigramProb = self.__goodTuring[(sentence_arr[i-1],sentence_arr[i])]['prob-gt']
+                    
+                    for x in self.__goodTuring:
+                        if x[0] == self.__model[(sentence_arr[i-1],sentence_arr[i])]['count']:
+                            bigramProb = x[1]['prob']
+                        
+                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    gt = bigramProb/unigramProb
+                    prob *= gt
+                else:
+                    unseenProb = self.__model['zeroProbGT']
+                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    gt = unseenProb/unigramProb
+                    prob *= gt
+                    
         return prob
-        
         
 
 bg = Bigram()
