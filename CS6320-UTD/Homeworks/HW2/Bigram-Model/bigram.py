@@ -172,9 +172,9 @@ class Bigram:
             z.append(word)
         z.append("</s>")
         #print(z)
-        print('{:.20f}'.format(self.testBigram(z)))
-        print('{:.20f}'.format(self.testLaplaceSmoothBigram(z)))
-        print('{:.20f}'.format(self.testGTBigram(z)))
+        print('{:.60f}'.format(self.testBigram(z)))
+        print('{:.60f}'.format(self.testLaplaceSmoothBigram(z)))
+        print('{:.60f}'.format(self.testGTBigram(z)))
  
         
     def testBigram(self,sentence_arr):
@@ -183,10 +183,9 @@ class Bigram:
             if i == 0:
                 prob = self.__model['unigrams'][sentence_arr[i]]['prob']
             else:
-                bigramProb = 0
-                if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
-                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']
-                    prob *= bigramProb
+                
+                bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']  
+                prob *= bigramProb
         return prob
     
     
@@ -217,7 +216,7 @@ class Bigram:
                 bigramProb = 0
                 if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
                     #print(self.__model[(sentence_arr[i-1],sentence_arr[i])])
-                    #bigramProb = self.__goodTuring[(sentence_arr[i-1],sentence_arr[i])]['prob-gt']
+                    # bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob-gt']
                     
                     for x in self.__goodTuring:
                         if x[0] == self.__model[(sentence_arr[i-1],sentence_arr[i])]['count']:
@@ -237,4 +236,4 @@ class Bigram:
 
 bg = Bigram()
 bg.train()
-bg.test("Brainpower_NNP ,_, not_RB physical_JJ plant_NN ,_, is_VBZ now_RB a_DT firm_NN 's_POS chief_JJ asset_NN ._. ")
+bg.test("In_IN Tijuana_NNP ,_, across_IN the_DT border_NN from_IN San_NNP Diego_NNP ,_, the_DT wastewater_NN treatment_NN plant_NN is_VBZ large_JJ enough_RB to_TO treat_VB less_JJR than_IN half_PDT the_DT Mexican_JJ city_NN 's_POS waste_NN ,_, the_DT report_NN said_VBD ._.")
