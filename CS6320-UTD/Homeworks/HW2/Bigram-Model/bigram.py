@@ -5,7 +5,7 @@ Created on Sun Sep 27 20:06:13 2020
 
 @author: pratt
 """
-import _pickle as pickle
+import pickle as pickle
 
 class Bigram:
     __model = {}
@@ -172,9 +172,11 @@ class Bigram:
             z.append(word)
         z.append("</s>")
         #print(z)
-        print('{:.60f}'.format(self.testBigram(z)))
-        print('{:.60f}'.format(self.testLaplaceSmoothBigram(z)))
-        print('{:.60f}'.format(self.testGTBigram(z)))
+        p = self.testBigram(z)
+        q = self.testLaplaceSmoothBigram(z)
+        r = self.testGTBigram(z)
+        return p,q,r
+        # '{:.60f}'.format(self.testGTBigram(z))
  
         
     def testBigram(self,sentence_arr):
@@ -183,9 +185,11 @@ class Bigram:
             if i == 0:
                 prob = self.__model['unigrams'][sentence_arr[i]]['prob']
             else:
-                
-                bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']  
-                prob *= bigramProb
+                if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                    bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob']  
+                    prob *= bigramProb
+                else:
+                    prob = 0
         return prob
     
     
@@ -198,12 +202,13 @@ class Bigram:
                 bigramProb = 0
                 if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
                     bigramProb = self.__model[(sentence_arr[i-1],sentence_arr[i])]['prob-addOne']
-                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]['prob']
                     laplaceProb = bigramProb/unigramProb
                     prob *= laplaceProb
                 else:
-                    unigramProb = self.__model['zeroProbAddOne'][sentence_arr[i-1]]["prob"]
-                    prob *= unigramProb
+                    if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                        unigramProb = self.__model['zeroProbAddOne'][sentence_arr[i-1]]
+                        prob *= unigramProb
                     
         return prob
         
@@ -227,13 +232,10 @@ class Bigram:
                     prob *= gt
                 else:
                     unseenProb = self.__model['zeroProbGT']
-                    unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
-                    gt = unseenProb/unigramProb
-                    prob *= gt
-                    
+                    if (sentence_arr[i-1],sentence_arr[i]) in self.__model.keys():
+                        unigramProb = self.__model['unigrams'][sentence_arr[i-1]]["prob"]
+                        gt = unseenProb/unigramProb
+                        prob *= gt
+                    else:
+                        prob = 0
         return prob
-        
-
-bg = Bigram()
-bg.train()
-bg.test("In_IN Tijuana_NNP ,_, across_IN the_DT border_NN from_IN San_NNP Diego_NNP ,_, the_DT wastewater_NN treatment_NN plant_NN is_VBZ large_JJ enough_RB to_TO treat_VB less_JJR than_IN half_PDT the_DT Mexican_JJ city_NN 's_POS waste_NN ,_, the_DT report_NN said_VBD ._.")
