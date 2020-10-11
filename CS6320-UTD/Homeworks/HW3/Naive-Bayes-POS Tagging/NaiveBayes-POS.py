@@ -119,7 +119,7 @@ class POS_Tagging(object):
         f1 = open("result.txt","w")
         prediction = []
         for i in range(0, len(split_sentence)):
-            prediction.append("NNP")
+            prediction.append("NNP") #If everything is zero default is NNP
             
             if i==0:
                 max_probability_tag = 0
@@ -134,6 +134,8 @@ class POS_Tagging(object):
                     if word+"_"+tag in word_given_tag.keys():
                         likelihood = word_given_tag[word+"_"+tag]/tags[tag]
                     probability = prior * likelihood
+                    f1.write("P("+tag.upper()+"|"+word+")"+":"+str(likelihood)+"\n")
+                    f1.write("P("+tag.upper()+"|"+"<s>"+")"+":"+str(prior)+"\n")
                     if probability > max_probability_tag:
                         max_probability_tag = probability
                         prediction[i] = 0
@@ -152,6 +154,8 @@ class POS_Tagging(object):
                     if word+"_"+tag in word_given_tag.keys():
                         likelihood = word_given_tag[word+"_"+tag]/tags[tag]
                     probability = prior * likelihood
+                    f1.write("P("+tag.upper()+"|"+word+")"+":"+str(likelihood)+"\n")
+                    f1.write("P("+tag.upper()+"|"+prediction[i-1]+")"+":"+str(prior)+"\n")
                     if probability > max_probability_tag:
                         max_probability_tag = probability
                         prediction[i] = 0
@@ -170,6 +174,8 @@ class POS_Tagging(object):
                     if word+"_"+tag in word_given_tag.keys():
                         likelihood = word_given_tag[word+"_"+tag]/tags[tag]
                     probability = prior * likelihood
+                    f1.write("P("+tag.upper()+"|"+word+")"+":"+str(likelihood)+"\n")
+                    f1.write("P("+"</s>"+"|"+tag.upper()+")"+":"+str(prior)+"\n")
                     if probability > max_probability_tag:
                         max_probability_tag = probability
                         prediction[i] = 0
