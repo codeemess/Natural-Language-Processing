@@ -15,6 +15,15 @@ class POS_Tagging(object):
             tokens = line.rstrip().split()
             # print(tokens)
             for token in tokens:
+                if "<s>" in tags.keys():
+                    tags["<s>"] += 1
+                else:
+                    tags["<s>"] = 1
+                
+                if "</s>" in tags.keys():
+                    tags["</s>"] += 1
+                else:
+                    tags["</s>"] = 1
                 if not token in word_tag.keys():
                     word_tag[token] = 1
                 else:
@@ -93,6 +102,9 @@ class POS_Tagging(object):
         for x in refined_content:
             z = []
             z.append("<s>")
+            
+
+                
             for word in x:
                 tag = word.split('_')[1]
                 z.append(tag)
@@ -104,17 +116,65 @@ class POS_Tagging(object):
     def test(self,sentence):
         tags, word_given_tag, total_tags, tags_given_tags = self.buildTagsAndWordTags()
         split_sentence = sentence.split()
-        print(split_sentence)
-        tags_given_words = {}
         f1 = open("result.txt","w")
+        prediction = []
         for i in range(0, len(split_sentence)):
-            if i==0:
-                pass
-            if i==len(split_sentence):
-                pass
+            prediction.append("NNP")
             
-
-        
-    
+            if i==0:
+                max_probability_tag = 0
+                for tag in tags.keys():
+                    prior = 0
+                    likelihood = 0
+                    if( ("<s>", tag) in tags_given_tags.keys()):
+                        prior_of_tag = tags_given_tags[('<s>',tag)]/tags["<s>"]
+                        prior = prior_of_tag
+                    
+                    word = split_sentence[i]
+                    if word+"_"+tag in word_given_tag.keys():
+                        likelihood = word_given_tag[word+"_"+tag]/tags[tag]
+                    probability = prior * likelihood
+                    if probability > max_probability_tag:
+                        max_probability_tag = probability
+                        prediction[i] = 0
+                        prediction[i] = tag
+           
+            elif i==len(split_sentence):
+                max_probability_tag = 0
+                for tag in tags.keys():
+                    prior = 0
+                    likelihood = 0
+                    if( (tag, "</s>") in tags_given_tags.keys()):
+                        prior_of_tag = tags_given_tags[(tag, "</s>")]/tags[tag]
+                        prior = prior_of_tag
+                    
+                    word = split_sentence[i]
+                    if word+"_"+tag in word_given_tag.keys():
+                        likelihood = word_given_tag[word+"_"+tag]/tags[tag]
+                    probability = prior * likelihood
+                    if probability > max_probability_tag:
+                        max_probability_tag = probability
+                        prediction[i] = 0
+                        prediction[i] = tag
+                        
+            else:
+                max_probability_tag = 0
+                for tag in tags.keys():
+                    prior = 0
+                    likelihood = 0
+                    if( (prediction[i-1], tag) in tags_given_tags.keys()):
+                        prior_of_tag = tags_given_tags[(prediction[i-1],tag)]/tags[prediction[i-1]]
+                        prior = prior_of_tag
+                    
+                    word = split_sentence[i]
+                    if word+"_"+tag in word_given_tag.keys():
+                        likelihood = word_given_tag[word+"_"+tag]/tags[tag]
+                    probability = prior * likelihood
+                    if probability > max_probability_tag:
+                        max_probability_tag = probability
+                        prediction[i] = 0
+                        prediction[i] = tag
+                        # print(tag)
+            
 p = POS_Tagging()
-p.test("Hi I am Batman")
+p.test("Fire insures biological diversity")
