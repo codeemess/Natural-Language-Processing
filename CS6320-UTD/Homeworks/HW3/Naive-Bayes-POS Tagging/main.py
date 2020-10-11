@@ -6,8 +6,7 @@ Created on Mon Sep 28 05:50:43 2020
 @author: pratt
 """
 import sys
-from bigram import Bigram
-def main():
+from NaiveBayes-POS import POS-Tagging
     bg = Bigram()
     bg.train()
     print(sys.argv[1])

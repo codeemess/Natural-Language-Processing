@@ -5,6 +5,9 @@ Created on Mon Oct 12 01:04:35 2020
 
 @author: konoha
 """
+
+import sys
+
 class POS_Tagging(object):
     
     def buildTagsAndWordTags(self):
@@ -182,5 +185,20 @@ class POS_Tagging(object):
                         prediction[i] = tag
                         # print(tag)
             
-p = POS_Tagging()
-p.test("Fire insures biological diversity")
+        return_sentence = ""
+        for i in range(0,len(split_sentence)):
+            x = ""
+            x = split_sentence[i] +"_" + prediction[i] + " "
+            return_sentence = return_sentence + x
+        
+        #print(return_sentence)
+        return return_sentence
+                
+
+def main():
+    P = POS_Tagging()
+    print(sys.argv[1])
+    print(P.test(sys.argv[1]))
+    print("check file result.txt")
+
+main()
