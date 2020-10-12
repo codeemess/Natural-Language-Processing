@@ -107,25 +107,18 @@ class Viterbi(object):
 
 def main():
    
+    sentence1 = "back the bill Janet will"
     V = Viterbi()
     emission_prob,transition_prob,viterbi_prob,back_pointer = V.intialize()
     states = emission_prob.index
    
-    sentence1 = "Janet will back the bill".split()
-    sentence2 = "back the bill Janet will".split()
-
+    sentence1 = sys.argv[1].split()
+    # sentence1 = "back the bill Janet will".split()
 
     print("For Sentence1:")
     solution_tags1, viterbi_matrix1, back_pointer1 = V.viterbi(states, sentence1, emission_prob, transition_prob, viterbi_prob,back_pointer)
     print("Sequence of tags assingned:",solution_tags1)
-    print("viterbi probability matrix", viterbi_matrix1)
-
-    print("**************************************************************")
-
-    solution_tags2, viterbi_matrix2, back_pointer2 = V.viterbi(states, sentence2, emission_prob, transition_prob, viterbi_prob, back_pointer)
-    print("Sequence of tags assingned:",solution_tags2)
-    print("viterbi probability matrix", viterbi_matrix2)
-    print("**************************************************************")
+    # print("viterbi probability matrix", viterbi_matrix1)
 
 
 main()

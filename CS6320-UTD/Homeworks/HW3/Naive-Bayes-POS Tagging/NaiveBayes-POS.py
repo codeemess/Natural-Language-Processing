@@ -32,7 +32,6 @@ class POS_Tagging(object):
                 else:
                     word_tag[token] = word_tag[token] + 1
                 token_split = token.split("_")
-                word = token_split[0]
                 tag = token_split[1]
                 if not tag in tags.keys():
                     tags[tag] = 1
@@ -183,7 +182,7 @@ class POS_Tagging(object):
                         max_probability_tag = probability
                         prediction[i] = 0
                         prediction[i] = tag
-                        # print(tag)
+                        
             
         return_sentence = ""
         for i in range(0,len(split_sentence)):
